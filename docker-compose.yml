@@ -1,0 +1,38 @@
+version: "3.7"
+services:
+  pia:
+    build: https://github.com/qdm12/private-internet-access-docker.git
+    image: qmcgaw/private-internet-access
+    container_name: pia
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    network_mode: bridge
+    init: true
+    ports:
+      - 8888:8888/tcp
+      - 8388:8388/tcp
+      - 8388:8388/udp
+    # command:
+    environment:
+      - USER=${PIA_USER}
+      - PASSWORD=${PIA_PASSWORD}
+      - ENCRYPTION=strong
+      - PROTOCOL=udp
+      - REGION=US East
+      - NONROOT=no
+      - DOT=on
+      - BLOCK_MALICIOUS=on
+      - BLOCK_NSA=off
+      - UNBLOCK=
+      - FIREWALL=on
+      - EXTRA_SUBNETS=
+      - TINYPROXY=on
+      - TINYPROXY_LOG=Critical
+      - TINYPROXY_USER=
+      - TINYPROXY_PASSWORD=
+        #- SHADOWSOCKS=on
+        #- SHADOWSOCKS_LOG=on
+        #- SHADOWSOCKS_PASSWORD=
+    restart: always
