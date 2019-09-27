@@ -11,10 +11,8 @@ services:
     network_mode: bridge
     init: true
     ports:
-      - 8888:8888/tcp
-      - 8388:8388/tcp
-      - 8388:8388/udp
-    # command:
+      - 8989:8989 # Sonarr
+      - 80:80
     environment:
       - USER=${PIA_USER}
       - PASSWORD=${PIA_PASSWORD}
@@ -28,6 +26,7 @@ services:
       - UNBLOCK=
       - FIREWALL=on
       - EXTRA_SUBNETS=
+      #- PORT_FORWARDING=on
       - TINYPROXY=on
       - TINYPROXY_LOG=Critical
       - TINYPROXY_USER=
@@ -36,3 +35,26 @@ services:
         #- SHADOWSOCKS_LOG=on
         #- SHADOWSOCKS_PASSWORD=
     restart: always
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New York
+      - UMASK_SET=022 #optional
+    volumes:
+      - ~/.media/config:/config
+      - ~/.media/tvseries:/tv
+      - ~/.media/downloads:/downloads
+    network_mode: "service:pia"
+    restart: unless-stopped
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/error.log:/etc/nginx/error_log.log
+      - ./nginx/cache/:/etc/nginx/cache
+    network_mode: "service:pia"
