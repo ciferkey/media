@@ -16,3 +16,5 @@ https://www.thepolyglotdeveloper.com/2017/03/nginx-reverse-proxy-containerized-d
 https://github.com/Sonarr/Sonarr/wiki/Reverse-Proxy#http-non-ssl
  
 https://docs.docker.com/network/bridge/
+
+switch playbook to use passlib: https://docs.ansible.com/ansible/latest/user_guide/playbooks_prompts.html
