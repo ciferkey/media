@@ -1,0 +1,52 @@
+---
+
+  - name: Docker
+    connection: local
+    gather_facts: yes
+    hosts: localhost
+    vars_prompt:
+      - name: password
+        prompt: "Password for docker user"
+    tasks:
+      - name: Create docker user
+        user:
+            name: docker
+            password: "{{password}}"
+            update_password: on_create
+            groups:
+                - sudo
+            shell: /bin/bash
+            state: present
+      - name: Install Docker Deps
+        apt:
+            name:
+                - apt-transport-https
+                - ca-certificates
+                - curl
+                - gnupg2
+                - software-properties-common
+            update_cache: yes
+      - name: Install Docker Repository Key
+        apt_key: 
+            url: https://download.docker.com/linux/debian/gpg
+      - name: Add Docker Respository
+        apt_repository:
+            repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+      - name: Install Docker
+        apt:
+            name:
+                - docker-ce
+                - docker-ce-cli
+                - containerd.io
+            update_cache: yes
+      - name: Install Docker Compose
+        get_url:
+            url: https://github.com/docker/compose/releases/download/1.24.1/docker-compose-{{ansible_system}}-{{ansible_architecture}}
+            dest: /usr/local/bin/docker-compose
+            mode: 755
+      - name: Check Out Project
+        become_user: docker
+        become: true
+        git:
+            repo: https://github.com/ciferkey/media.git
+            dest: /home/docker/media
