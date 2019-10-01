@@ -7,6 +7,10 @@
     vars_prompt:
       - name: password
         prompt: "Password for docker user"
+        private: yes
+        encrypt: "sha512_crypt"
+        confirm: yes
+        salt_size: 7
     tasks:
       - name: Create docker user
         user:
@@ -43,7 +47,8 @@
         get_url:
             url: https://github.com/docker/compose/releases/download/1.24.1/docker-compose-{{ansible_system}}-{{ansible_architecture}}
             dest: /usr/local/bin/docker-compose
-            mode: 755
+            mode: '755'
+            owner: docker
       - name: Check Out Project
         become_user: docker
         become: true
