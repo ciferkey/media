@@ -109,3 +109,29 @@ services:
         - ~/.media/cache:/cache  
         - ~/.media/tvseries:/tv
         - ~/.media/movies:/movies
+      restart: unless-stopped
+  ddns-updater:
+    image: qmcgaw/ddns-updater
+    build:
+        context: https://github.com/qdm12/ddns-updater.gitA
+        dockerfile: qmcgaw/ddns-updater
+        args:
+          BASE_IMAGE_BUILDER: arm32v7/golang
+          BASE_IMAGE: arm32v7/alpine
+          GOARCH: arm 
+    container_name: ddns-updater
+    network_mode: bridge
+    ports:
+      - 8000:8000/tcp
+      - 443:443/tcp
+      - 53:53/udp
+    volumes:
+      - ~/.media/ddns:/updater/data
+    environment:
+      - DELAY=300
+      - ROOTURL=
+      - LISTENINGPORT=8000
+      - LOGGING=human
+      - NODEID=0
+      - LOGLEVEL=
+    restart: always
