@@ -102,16 +102,46 @@ services:
       - 9117:9117
     restart: unless-stopped
   jellyfin:  
-      image: jellyfin/jellyfin  
-      network_mode: "host"  
-      volumes:  
-        - ~/.media/config/jellyfin:/config  
-        - ~/.media/cache:/cache  
-        - ~/.media/tvseries:/tv
-        - ~/.media/movies:/movies
-      restart: unless-stopped
+    image: jellyfin/jellyfin  
+    container_name: jellyfin
+    network_mode: "host"  
+    volumes:  
+      - ~/.media/config/jellyfin:/config  
+      - ~/.media/cache:/cache  
+      - ~/.media/tvseries:/tv
+      - ~/.media/movies:/movies
+    devices:
+      - /dev/vchiq:/dev/vchiq
+    privileged: true
+    restart: unless-stopped
+    #plex:
+    #image: linuxserver/plex
+    #container_name: plex
+    # network_mode: host
+    #environment:
+    #- PUID=1000
+    # - PGID=1000
+    # - VERSION=docker
+    # - UMASK_SET=022 #optional
+    #ports:
+    # - 32400:32400/tcp
+    # - 32400:32400/udp
+    # - 32469:32469/tcp
+    # - 32469:32469/udp
+        # https://support.plex.tv/articles/201543147-what-network-ports-do-i-need-to-allow-through-my-firewall/
+        #- 5353:5353/udp
+        # - 1900:1900/udp
+        #volumes:
+        #- ~/.media/config/plex:/config
+        #- ~/.media/tvseries:/data/tvshows
+        #- ~/.media/movies:/data/movies
+        #- ~/.media/plex_tmp:/transcode
+        #devices:
+        #- /dev/vchiq:/dev/vchiq
+        #restart: unless-stopped
   ddns-updater:
     image: qmcgaw/ddns-updater
+    container_name: ddns-updater
     build:
         context: https://github.com/qdm12/ddns-updater.gitA
         dockerfile: qmcgaw/ddns-updater
@@ -119,7 +149,6 @@ services:
           BASE_IMAGE_BUILDER: arm32v7/golang
           BASE_IMAGE: arm32v7/alpine
           GOARCH: arm 
-    container_name: ddns-updater
     network_mode: bridge
     ports:
       - 8000:8000/tcp
@@ -135,3 +164,17 @@ services:
       - NODEID=0
       - LOGLEVEL=
     restart: always
+  ombi:
+    image: linuxserver/ombi
+    container_name: ombi
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - BASE_URL=/ombi #optional
+    volumes:
+      - ~/.mediai/config/ombi:/config
+    network_mode: host
+    ports:
+      - 3579:3579
+    restart: unless-stopped 
