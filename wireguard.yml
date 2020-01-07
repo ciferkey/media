@@ -2,16 +2,24 @@
 
   - name: Wireguard
     connection: ssh
-    gather_facts: yes
+    become_user: root
+    become: yes
     hosts: rpi
+    vars:
+      address: "{{ lookup('ini', 'Address section=Interface file=mullvad.conf').split(',')[0] }}"
+      dns: "{{ lookup('ini', 'DNS section=Interface file=mullvad.conf') }}"
     tasks:
+      - name: Print Mullavd Address
+        debug:
+          msg: "Address is: {{ address }}"
+      - name: Print Mullvad DNS
+        debug:
+          msg: "DNS is: {{ dns }}"
       - name: enable unstable
         lineinfile:
           path: /etc/apt/sources.list.d/unstable-wireguard.list
           create: yes
           line: deb http://deb.debian.org/debian/ unstable main
-        become_user: root
-        become: yes
       - name: enable wireguard repo
         blockinfile:
           path: /etc/apt/preferences.d/limit-unstable
@@ -20,15 +28,53 @@
             Package: *
             Pin: release a=unstable
             Pin-Priority: 150
-
-        become_user: root
-        become: yes
+      - name: Add first key
+        apt_key:
+          keyserver: keyserver.ubuntu.com
+          id: 8B48AD6246925553
+      - name: Add second key
+        apt_key:
+          keyserver: keyserver.ubuntu.com
+          id: 7638D0442B90D010
+      - name: Add third key
+        apt_key:
+          keyserver: keyserver.ubuntu.com
+          id: 04EE7237B7D453EC
       - name: Install deps
         apt:
           pkg:
+            - raspberrypi-kernel-headers
+            - dirmngr
             - wireguard-dkms
             - wireguard-tools
             - resolvconf
           update_cache: yes
-        become_user: root
-        become: yes
+      - name: Copy config to server
+        synchronize:
+          src: mullvad.conf
+          dest: /etc/wireguard/wg1.conf
+      - name: remove Address entry
+        ini_file:
+          path: /etc/wireguard/wg1.conf
+          section: Interface
+          option: Address
+          state: absent
+      - name: remove DNS entry
+        ini_file:
+          path: /etc/wireguard/wg1.conf
+          section: Interface
+          option: DNS
+          state: absent
+      - name: add wireguard interface
+        command: "ip link add dev wg1 type wireguard"
+      - name: set wireguard config
+        command: "wg setconf wg1 /etc/wireguard/wg1.conf"
+      - name: set wireguard address
+        command: "ip address add {{ address }} dev wg1"
+      - name: put interface up
+        command: "ip link set up dev wg1"
+      - name: set nameserver
+        command: "printf 'nameserver %s\n' '{{ dns }}' | resolvconf -a tun.wg1 -m 0 -x"
+      - name: handle reverse path filtering
+        command: "sysctl -w net.ipv4.conf.all.rp_filter=2"
+

@@ -1,2 +1,2 @@
 [rpi]
-raspberrypi ssh_user=pi
+raspberrypi ansible_user=pi
