@@ -1,0 +1,63 @@
+---
+
+  - name: Docker
+    connection: ssh
+    gather_facts: yes
+    hosts: rpi
+    vars_prompt:
+      - name: password
+        prompt: "Password for docker user"
+        private: yes
+        encrypt: "sha512_crypt"
+        confirm: yes
+        salt_size: 7
+    become_user: root
+    become: yes
+    tasks:
+      - name: Download Docker Install Script
+        get_url:
+          url: https://get.docker.com
+          dest: /tmp/docker_install.sh
+      - name: Run the Docker Install Script
+        shell: sh /tmp/docker_install.sh
+      - name: Create docker user
+        user:
+            name: docker
+            password: "{{password}}"
+            update_password: on_create
+            groups:
+                - sudo
+                - render
+                - video
+                - docker
+            shell: /bin/bash
+            state: present
+      - name: Set Docker to Run on Startup
+        systemd:
+          state: started
+          name: docker
+          enabled: true
+      - name: Docker Compose Dependencies Workaround
+        # See https://stackoverflow.com/a/51071841
+        pip:
+          name: backports.ssl-match-hostname
+          state: absent
+      - name: Install Docker Compose Dependencies
+        apt:
+          pkg:
+            - python-backports.ssl-match-hostname
+            - python-pip
+            - python-dev
+            - libffi-dev
+            - libssl-dev
+            - build-essential
+          update_cache: yes
+      - name: Install Docker Compose
+        pip:
+          name: docker-compose
+      - name: Check Out Project
+        become_user: docker
+        become: true
+        git:
+            repo: https://github.com/ciferkey/media.git
+            dest: /home/docker/media
