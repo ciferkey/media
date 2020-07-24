@@ -29,10 +29,10 @@
             Package: *
             Pin: release a=unstable
             Pin-Priority: 150
-      - name: Add first key
-        apt_key:
-          keyserver: keyserver.ubuntu.com
-          id: 8B48AD6246925553
+              #- name: Add first key
+              #apt_key:
+              #keyserver: keyserver.ubuntu.com
+              #id: 8B48AD6246925553
       - name: Add second key
         apt_key:
           keyserver: keyserver.ubuntu.com
@@ -78,12 +78,12 @@
         command: "printf 'nameserver %s\n' '{{ dns }}' | resolvconf -a tun.wg1 -m 0 -x"
       - name: handle reverse path filtering
         command: "sysctl -w net.ipv4.conf.all.rp_filter=2"
+      - name: add firewall rule
+        command: "ip rule add from {{ subnet_ip }} table 200"
+      - name: add firewall route
+        command: "ip route add default via {{ address.split('/')[0]}} table 200"
       - name: create docker network
         docker_network:
           name: docker-vpn0
           ipam_config:
             - subnet: "{{ subnet_ip }}"
-      - name: add firewall rule
-        command: "ip rule add from {{ subnet_ip }} table 200"
-      - name: add firewall route
-        command: "ip route add default via {{ address.split('/')[0]}} table 200"
