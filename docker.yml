@@ -37,11 +37,6 @@
           state: started
           name: docker
           enabled: true
-      - name: Docker Compose Dependencies Workaround
-        # See https://stackoverflow.com/a/51071841
-        pip:
-          name: backports.ssl-match-hostname
-          state: absent
       - name: Install Docker Compose Dependencies
         apt:
           pkg:
@@ -55,6 +50,10 @@
       - name: Install Docker Compose
         pip:
           name: docker-compose
+      - name: Install Git
+        apt:
+          pkg:
+            - git
       - name: Check Out Project
         become_user: docker
         become: true

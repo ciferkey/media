@@ -18,3 +18,13 @@ https://github.com/Sonarr/Sonarr/wiki/Reverse-Proxy#http-non-ssl
 https://docs.docker.com/network/bridge/
 
 switch playbook to use passlib: https://docs.ansible.com/ansible/latest/user_guide/playbooks_prompts.html
+
+
+--
+ssh pi@raspberrypi
+  passwd
+
+pacman -S ansible python-passlib sshpass
+
+ansible-playbook docker.yml -i inventory.yml --ask-pass
+
